@@ -26,6 +26,7 @@ const GenerateCapstoneTitleOutputSchema = z.object({
   description: z.string().describe('A clear and detailed description of the project.'),
   implementationSteps: z.string().describe('Steps on how to implement the project.'),
   expectedMethodology: z.string().describe('Expected methodologies that can be used.'),
+  dataCollection: z.string().describe('How to collect data for the project.'),
   estimatedTime: z.string().describe('Estimated time to finish the project (days or months).'),
   additionalInformation: z.string().describe('Other important information about the project.'),
 });
@@ -55,8 +56,9 @@ const prompt = ai.definePrompt({
   4. Provide a clear and detailed description of the project.
   5. Outline the steps on how to implement the project.
   6. Suggest expected methodologies that can be used.
-  7. Estimate the time to finish the project (days or months).
-  8. Include any additional important information about the project.
+  7. Describe how to collect data for the project.
+  8. Estimate the time to finish the project (days or months).
+  9. Include any additional important information about the project.
 
   Output the result in JSON format.
   {
@@ -66,6 +68,7 @@ const prompt = ai.definePrompt({
     "description": "Detailed description of the project",
     "implementationSteps": "Steps on how to implement the project",
     "expectedMethodology": "Expected methodologies that can be used",
+    "dataCollection": "How to collect data for the project",
     "estimatedTime": "Estimated time to finish the project",
     "additionalInformation": "Any additional important information"
   }

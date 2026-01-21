@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot } from "lucide-react";
+import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database } from "lucide-react";
 
 const formSchema = z.object({
   fieldOfStudy: z.string().min(1, 'Please select a field of study.'),
@@ -241,6 +241,7 @@ function ResultsDisplay({ result }: { result: GenerateCapstoneTitleOutput }) {
     { icon: FileText, title: 'Description', content: result.description },
     { icon: ListChecks, title: 'Implementation Steps', content: result.implementationSteps },
     { icon: FunctionSquare, title: 'Expected Methodology', content: result.expectedMethodology },
+    { icon: Database, title: 'Data Collection', content: result.dataCollection },
     { icon: Clock, title: 'Estimated Time', content: result.estimatedTime },
     { icon: Info, title: 'Additional Information', content: result.additionalInformation },
   ];
