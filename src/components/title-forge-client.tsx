@@ -12,13 +12,13 @@ import { generateTitleAction } from "@/app/actions.ts";
 import type { GenerateCapstoneTitleOutput } from "@/ai/flows/generate-capstone-title";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database } from "lucide-react";
+import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight } from "lucide-react";
 
 const formSchema = z.object({
   fieldOfStudy: z.string().min(1, 'Please select a field of study.'),
@@ -42,6 +42,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function TitleForgeClient() {
   const [result, setResult] = useState<GenerateCapstoneTitleOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingNext, setIsGeneratingNext] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -87,6 +88,29 @@ export default function TitleForgeClient() {
       });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGenerateNext() {
+    setIsGeneratingNext(true);
+    const values = form.getValues();
+    const input = {
+      fieldOfStudy: values.fieldOfStudy,
+      topic: values.topic === 'Other' ? values.customTopic! : values.topic,
+      difficultyLevel: values.difficultyLevel as DifficultyLevel,
+    };
+
+    try {
+      const response = await generateTitleAction(input);
+      setResult(response);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'An Error Occurred',
+        description: error instanceof Error ? error.message : "Something went wrong.",
+      });
+    } finally {
+      setIsGeneratingNext(false);
     }
   }
 
@@ -201,7 +225,7 @@ export default function TitleForgeClient() {
             </motion.div>
           ) : result ? (
             <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <ResultsDisplay result={result} />
+              <ResultsDisplay result={result} onGenerateNext={handleGenerateNext} isGeneratingNext={isGeneratingNext} />
             </motion.div>
           ) : (
             <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -234,7 +258,7 @@ function ResultsSkeleton() {
   );
 }
 
-function ResultsDisplay({ result }: { result: GenerateCapstoneTitleOutput }) {
+function ResultsDisplay({ result, onGenerateNext, isGeneratingNext }: { result: GenerateCapstoneTitleOutput; onGenerateNext: () => void; isGeneratingNext: boolean; }) {
   const details = [
     { icon: Cpu, title: 'Suggested Tech Stacks', content: result.suggestedTechStacks },
     { icon: Target, title: 'Objective', content: result.objective },
@@ -269,6 +293,12 @@ function ResultsDisplay({ result }: { result: GenerateCapstoneTitleOutput }) {
           ))}
         </Accordion>
       </CardContent>
+      <CardFooter className="p-6 border-t border-border/50">
+        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
+          {isGeneratingNext ? "Generating..." : "Generate Another"}
+          {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
@@ -284,3 +314,5 @@ function Placeholder() {
     </div>
   );
 }
+
+    
