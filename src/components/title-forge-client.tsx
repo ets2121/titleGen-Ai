@@ -42,7 +42,6 @@ type FormValues = z.infer<typeof formSchema>;
 export default function TitleForgeClient() {
   const [result, setResult] = useState<GenerateCapstoneTitleOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingNext, setIsGeneratingNext] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -92,7 +91,7 @@ export default function TitleForgeClient() {
   }
 
   async function handleGenerateNext() {
-    setIsGeneratingNext(true);
+    setIsLoading(true);
     const values = form.getValues();
     const input = {
       fieldOfStudy: values.fieldOfStudy,
@@ -110,7 +109,7 @@ export default function TitleForgeClient() {
         description: error instanceof Error ? error.message : "Something went wrong.",
       });
     } finally {
-      setIsGeneratingNext(false);
+      setIsLoading(false);
     }
   }
 
@@ -229,7 +228,7 @@ export default function TitleForgeClient() {
         )}
       </AnimatePresence>
 
-      <div className={result ? 'w-full max-w-4xl' : 'lg:sticky top-8'}>
+      <div className={result || isLoading ? 'w-full max-w-4xl' : 'lg:sticky top-8'}>
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -237,7 +236,7 @@ export default function TitleForgeClient() {
             </motion.div>
           ) : result ? (
             <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <ResultsDisplay result={result} onGenerateNext={handleGenerateNext} isGeneratingNext={isGeneratingNext} onNewSearch={() => setResult(null)} />
+              <ResultsDisplay result={result} onGenerateNext={handleGenerateNext} isGeneratingNext={isLoading} onNewSearch={() => setResult(null)} />
             </motion.div>
           ) : (
             <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -285,13 +284,13 @@ function ResultsDisplay({ result, onGenerateNext, isGeneratingNext, onNewSearch 
   return (
     <Card className="bg-card/50 border-border/50 max-h-[calc(100vh-10rem)] overflow-y-auto">
       <div className="sticky top-0 z-10 p-4 sm:p-6 bg-card/95 backdrop-blur-sm border-b border-border/50 flex flex-col sm:flex-row gap-3">
-        <Button onClick={onGenerateNext} className="w-full sm:order-2" disabled={isGeneratingNext}>
-          {isGeneratingNext ? "Generating..." : "Generate Another"}
-          {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
-        </Button>
-        <Button onClick={onNewSearch} variant="outline" className="w-full sm:w-auto sm:order-1">
+        <Button onClick={onNewSearch} variant="outline" className="w-full sm:w-auto">
             <Sparkles className="mr-2 h-4 w-4" />
             New Search
+        </Button>
+        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
+          {isGeneratingNext ? "Generating..." : "Generate Another"}
+          {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
         </Button>
       </div>
       <CardHeader>
