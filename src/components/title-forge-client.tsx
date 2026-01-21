@@ -272,6 +272,12 @@ function ResultsDisplay({ result, onGenerateNext, isGeneratingNext }: { result: 
 
   return (
     <Card className="bg-card/50 border-border/50 max-h-[80vh] overflow-y-auto">
+      <div className="sticky top-0 z-10 p-6 bg-card/95 backdrop-blur-sm border-b border-border/50">
+        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
+          {isGeneratingNext ? "Generating..." : "Generate Another"}
+          {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
+        </Button>
+      </div>
       <CardHeader>
         <CardTitle className="font-headline text-2xl text-primary">{result.title}</CardTitle>
         <p className="text-sm text-muted-foreground">Here are the generated details for your project idea.</p>
@@ -293,12 +299,6 @@ function ResultsDisplay({ result, onGenerateNext, isGeneratingNext }: { result: 
           ))}
         </Accordion>
       </CardContent>
-      <CardFooter className="p-6 border-t border-border/50">
-        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
-          {isGeneratingNext ? "Generating..." : "Generate Another"}
-          {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
@@ -314,5 +314,3 @@ function Placeholder() {
     </div>
   );
 }
-
-    
