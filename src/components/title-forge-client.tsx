@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight } from "lucide-react";
+import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight, Sparkles } from "lucide-react";
 
 const formSchema = z.object({
   fieldOfStudy: z.string().min(1, 'Please select a field of study.'),
@@ -115,109 +115,121 @@ export default function TitleForgeClient() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-      <Card className="bg-card/50 border-border/50">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Project Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="fieldOfStudy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Field of Study</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a field..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {fieldsOfStudy.map(field => (
-                          <SelectItem key={field.name} value={field.name}>{field.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <div className={`grid grid-cols-1 gap-8 lg:gap-12 items-start ${result ? 'lg:justify-items-center' : 'lg:grid-cols-2'}`}>
+      <AnimatePresence>
+        {!result && (
+          <motion.div
+            key="form-card"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="bg-card/50 border-border/50">
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl">Project Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="fieldOfStudy"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Field of Study</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a field..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {fieldsOfStudy.map(field => (
+                                <SelectItem key={field.name} value={field.name}>{field.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="topic"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Topic</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedField}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a topic..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableTopics.map(topic => (
-                          <SelectItem key={topic} value={topic}>{topic}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="topic"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Topic</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedField}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a topic..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {availableTopics.map(topic => (
+                                <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {selectedTopic === 'Other' && (
-                <FormField
-                  control={form.control}
-                  name="customTopic"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Custom Topic</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Quantum Computing in Finance" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+                    {selectedTopic === 'Other' && (
+                      <FormField
+                        control={form.control}
+                        name="customTopic"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Custom Topic</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Quantum Computing in Finance" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
-              <FormField
-                control={form.control}
-                name="difficultyLevel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Difficulty Level</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select difficulty..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {difficultyLevels.map(level => (
-                          <SelectItem key={level} value={level}>{level}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="difficultyLevel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Difficulty Level</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select difficulty..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {difficultyLevels.map(level => (
+                                <SelectItem key={level} value={level}>{level}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Generating...' : 'Forge Title'}
-                {!isLoading && <Lightbulb className="ml-2 h-4 w-4" />}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Generating...' : 'Forge Title'}
+                      {!isLoading && <Lightbulb className="ml-2 h-4 w-4" />}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="lg:sticky top-8">
+      <div className={result ? 'w-full max-w-4xl' : 'lg:sticky top-8'}>
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -225,7 +237,7 @@ export default function TitleForgeClient() {
             </motion.div>
           ) : result ? (
             <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <ResultsDisplay result={result} onGenerateNext={handleGenerateNext} isGeneratingNext={isGeneratingNext} />
+              <ResultsDisplay result={result} onGenerateNext={handleGenerateNext} isGeneratingNext={isGeneratingNext} onNewSearch={() => setResult(null)} />
             </motion.div>
           ) : (
             <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -258,7 +270,7 @@ function ResultsSkeleton() {
   );
 }
 
-function ResultsDisplay({ result, onGenerateNext, isGeneratingNext }: { result: GenerateCapstoneTitleOutput; onGenerateNext: () => void; isGeneratingNext: boolean; }) {
+function ResultsDisplay({ result, onGenerateNext, isGeneratingNext, onNewSearch }: { result: GenerateCapstoneTitleOutput; onGenerateNext: () => void; isGeneratingNext: boolean; onNewSearch: () => void; }) {
   const details = [
     { icon: Cpu, title: 'Suggested Tech Stacks', content: result.suggestedTechStacks },
     { icon: Target, title: 'Objective', content: result.objective },
@@ -271,11 +283,15 @@ function ResultsDisplay({ result, onGenerateNext, isGeneratingNext }: { result: 
   ];
 
   return (
-    <Card className="bg-card/50 border-border/50 max-h-[80vh] overflow-y-auto">
-      <div className="sticky top-0 z-10 p-6 bg-card/95 backdrop-blur-sm border-b border-border/50">
-        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
+    <Card className="bg-card/50 border-border/50 max-h-[calc(100vh-10rem)] overflow-y-auto">
+      <div className="sticky top-0 z-10 p-4 sm:p-6 bg-card/95 backdrop-blur-sm border-b border-border/50 flex flex-col sm:flex-row gap-3">
+        <Button onClick={onGenerateNext} className="w-full sm:order-2" disabled={isGeneratingNext}>
           {isGeneratingNext ? "Generating..." : "Generate Another"}
           {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
+        </Button>
+        <Button onClick={onNewSearch} variant="outline" className="w-full sm:w-auto sm:order-1">
+            <Sparkles className="mr-2 h-4 w-4" />
+            New Search
         </Button>
       </div>
       <CardHeader>
