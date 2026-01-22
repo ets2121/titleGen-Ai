@@ -8,8 +8,9 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { fieldsOfStudy, difficultyLevels, type DifficultyLevel } from "@/lib/constants";
-import { generateTitleAction } from "@/app/actions.ts";
+import { generateTitleAction, refineDetailsAction } from "@/app/actions";
 import type { GenerateCapstoneTitleOutput } from "@/ai/flows/generate-capstone-title";
+import type { RefineProjectDetailsInput } from "@/ai/flows/refine-project-details";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,7 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight, Sparkles } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight, Sparkles, Download, RefreshCw } from "lucide-react";
 
 const formSchema = z.object({
   fieldOfStudy: z.string().min(1, 'Please select a field of study.'),
@@ -230,13 +232,19 @@ export default function TitleForgeClient() {
 
       <div className={result || isLoading ? 'w-full max-w-4xl' : 'lg:sticky top-8'}>
         <AnimatePresence mode="wait">
-          {isLoading ? (
+          {isLoading && !result ? ( // Only show main skeleton on initial load
             <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <ResultsSkeleton />
             </motion.div>
           ) : result ? (
             <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <ResultsDisplay result={result} onGenerateNext={handleGenerateNext} isGeneratingNext={isLoading} onNewSearch={() => setResult(null)} />
+              <ResultsDisplay
+                result={result}
+                onGenerateNext={handleGenerateNext}
+                isGeneratingNext={isLoading}
+                onNewSearch={() => setResult(null)}
+                onRefine={setResult}
+              />
             </motion.div>
           ) : (
             <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -269,7 +277,19 @@ function ResultsSkeleton() {
   );
 }
 
-function ResultsDisplay({ result, onGenerateNext, isGeneratingNext, onNewSearch }: { result: GenerateCapstoneTitleOutput; onGenerateNext: () => void; isGeneratingNext: boolean; onNewSearch: () => void; }) {
+function ResultsDisplay({
+  result,
+  onGenerateNext,
+  isGeneratingNext,
+  onNewSearch,
+  onRefine
+}: {
+  result: GenerateCapstoneTitleOutput;
+  onGenerateNext: () => void;
+  isGeneratingNext: boolean;
+  onNewSearch: () => void;
+  onRefine: (refinedResult: GenerateCapstoneTitleOutput) => void;
+}) {
   const details = [
     { icon: Cpu, title: 'Suggested Tech Stacks', content: result.suggestedTechStacks },
     { icon: Target, title: 'Objective', content: result.objective },
@@ -280,6 +300,88 @@ function ResultsDisplay({ result, onGenerateNext, isGeneratingNext, onNewSearch 
     { icon: Clock, title: 'Estimated Time', content: result.estimatedTime },
     { icon: Info, title: 'Additional Information', content: result.additionalInformation },
   ];
+  
+  const [refinementRequest, setRefinementRequest] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
+  const { toast } = useToast();
+
+  async function handleRefineClick() {
+    if (!refinementRequest.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Refinement request is empty',
+        description: 'Please tell the AI how you want to refine the details.',
+      });
+      return;
+    }
+    setIsRefining(true);
+    try {
+      const input: RefineProjectDetailsInput = {
+        currentDetails: result,
+        refinementRequest,
+      };
+      const refinedResult = await refineDetailsAction(input);
+      onRefine(refinedResult);
+      setRefinementRequest('');
+      toast({
+        title: 'Refinement Complete',
+        description: 'The project details have been updated.',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'An Error Occurred',
+        description: error instanceof Error ? error.message : "Something went wrong.",
+      });
+    } finally {
+      setIsRefining(false);
+    }
+  }
+
+  function handleExportClick() {
+    const { title, suggestedTechStacks, objective, description, implementationSteps, expectedMethodology, dataCollection, estimatedTime, additionalInformation } = result;
+
+    const markdownContent = `
+# ${title}
+
+## Objective
+${objective}
+
+## Description
+${description}
+
+## Suggested Tech Stacks
+${suggestedTechStacks}
+
+## Implementation Steps
+${implementationSteps}
+
+## Expected Methodology
+${expectedMethodology}
+
+## Data Collection
+${dataCollection}
+
+## Estimated Time
+${estimatedTime}
+
+## Additional Information
+${additionalInformation}
+    `.trim().replace(/^\s+/gm, '');
+
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${safeTitle}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  const showSkeleton = isGeneratingNext || isRefining;
 
   return (
     <Card className="bg-card/50 border-border/50 max-h-[calc(100vh-10rem)] overflow-y-auto">
@@ -288,32 +390,69 @@ function ResultsDisplay({ result, onGenerateNext, isGeneratingNext, onNewSearch 
             <Sparkles className="mr-2 h-4 w-4" />
             New Search
         </Button>
-        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
+        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext || isRefining}>
           {isGeneratingNext ? "Generating..." : "Generate Another"}
           {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
         </Button>
+        <Button onClick={handleExportClick} variant="outline" className="w-full sm:w-auto">
+          <Download className="mr-2 h-4 w-4" />
+          Export
+        </Button>
       </div>
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary">{result.title}</CardTitle>
-        <p className="text-sm text-muted-foreground">Here are the generated details for your project idea.</p>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="single" collapsible className="w-full" defaultValue={details[0].title}>
-          {details.map(({ icon: Icon, title, content }) => (
-            <AccordionItem key={title} value={title}>
-              <AccordionTrigger className="text-base hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <Icon className="h-5 w-5 text-primary/80" />
-                  <span>{title}</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground prose prose-sm dark:prose-invert prose-p:leading-relaxed whitespace-pre-wrap">
-                {content}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </CardContent>
+      
+      <AnimatePresence mode="wait">
+        {showSkeleton ? (
+           <motion.div key="skeleton-inner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6">
+             <ResultsSkeleton />
+           </motion.div>
+        ) : (
+          <motion.div key="content-inner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl text-primary">{result.title}</CardTitle>
+              <p className="text-sm text-muted-foreground">Here are the generated details for your project idea.</p>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full" defaultValue={details[0].title}>
+                {details.map(({ icon: Icon, title, content }) => (
+                  <AccordionItem key={title} value={title}>
+                    <AccordionTrigger className="text-base hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-5 w-5 text-primary/80" />
+                        <span>{title}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground prose prose-sm dark:prose-invert prose-p:leading-relaxed whitespace-pre-wrap">
+                      {content}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <CardFooter className="flex-col items-start gap-4 p-6 bg-background/30 border-t border-border/50">
+        <h3 className="font-headline text-lg font-semibold flex items-center gap-2">
+          <Bot className="h-5 w-5 text-primary"/>
+          Refine with AI
+        </h3>
+        <p className="text-sm text-muted-foreground -mt-2">
+          Not quite right? Tell the AI what you want to change. (e.g., "Suggest Python libraries", "Make the description shorter")
+        </p>
+        <div className="w-full grid gap-2">
+          <Textarea 
+            placeholder="Your refinement request..."
+            value={refinementRequest}
+            onChange={(e) => setRefinementRequest(e.target.value)}
+            disabled={isRefining || isGeneratingNext}
+          />
+          <Button onClick={handleRefineClick} className="w-full sm:w-auto justify-self-start" disabled={isRefining || isGeneratingNext || !refinementRequest.trim()}>
+            {isRefining ? "Refining..." : "Refine"}
+            {!isRefining && <RefreshCw className="ml-2 h-4 w-4" />}
+          </Button>
+        </div>
+      </CardFooter>
     </Card>
   );
 }
