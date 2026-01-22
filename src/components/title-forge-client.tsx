@@ -24,19 +24,44 @@ import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, In
 
 const formSchema = z.object({
   fieldOfStudy: z.string().min(1, 'Please select a field of study.'),
-  topic: z.string().min(1, 'Please select a topic.'),
+  customFieldOfStudy: z.string().optional(),
+  topic: z.string().optional(), // Can be empty if custom field of study
   customTopic: z.string().optional(),
   difficultyLevel: z.enum(['Beginner', 'Intermediate', 'Advanced'], {
     required_error: 'Please select a difficulty level.',
   }),
-}).refine(data => {
-  if (data.topic === 'Other') {
-    return !!data.customTopic && data.customTopic.trim().length > 0;
+}).superRefine((data, ctx) => {
+  if (data.fieldOfStudy === 'Other') {
+    if (!data.customFieldOfStudy?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Please enter a custom field of study.',
+        path: ['customFieldOfStudy'],
+      });
+    }
+    if (!data.customTopic?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Please enter a topic for your custom field.',
+        path: ['customTopic'],
+      });
+    }
+  } else {
+    if (!data.topic) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Please select a topic.',
+            path: ['topic'],
+        });
+    }
+    if (data.topic === 'Other' && !data.customTopic?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Please enter a custom topic.',
+        path: ['customTopic'],
+      });
+    }
   }
-  return true;
-}, {
-  message: 'Please enter a custom topic.',
-  path: ['customTopic'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -50,6 +75,7 @@ export default function TitleForgeClient() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       fieldOfStudy: '',
+      customFieldOfStudy: '',
       topic: '',
       customTopic: '',
       difficultyLevel: 'Intermediate',
@@ -60,21 +86,26 @@ export default function TitleForgeClient() {
   const selectedTopic = form.watch('topic');
 
   const availableTopics = useMemo(() => {
+    if (selectedField === 'Other') return [];
     const field = fieldsOfStudy.find(f => f.name === selectedField);
     return field ? [...field.topics, 'Other'] : [];
   }, [selectedField]);
 
   useEffect(() => {
     form.resetField('topic');
+    form.resetField('customTopic');
   }, [selectedField, form]);
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
     setResult(null);
 
+    const isCustomField = values.fieldOfStudy === 'Other';
+    const isCustomTopic = values.topic === 'Other';
+
     const input = {
-      fieldOfStudy: values.fieldOfStudy,
-      topic: values.topic === 'Other' ? values.customTopic! : values.topic,
+      fieldOfStudy: isCustomField ? values.customFieldOfStudy! : values.fieldOfStudy,
+      topic: isCustomField || isCustomTopic ? values.customTopic! : values.topic!,
       difficultyLevel: values.difficultyLevel as DifficultyLevel,
     };
 
@@ -95,9 +126,13 @@ export default function TitleForgeClient() {
   async function handleGenerateNext() {
     setIsLoading(true);
     const values = form.getValues();
+    
+    const isCustomField = values.fieldOfStudy === 'Other';
+    const isCustomTopic = values.topic === 'Other';
+
     const input = {
-      fieldOfStudy: values.fieldOfStudy,
-      topic: values.topic === 'Other' ? values.customTopic! : values.topic,
+      fieldOfStudy: isCustomField ? values.customFieldOfStudy! : values.fieldOfStudy,
+      topic: isCustomField || isCustomTopic ? values.customTopic! : values.topic!,
       difficultyLevel: values.difficultyLevel as DifficultyLevel,
     };
 
@@ -149,6 +184,7 @@ export default function TitleForgeClient() {
                               {fieldsOfStudy.map(field => (
                                 <SelectItem key={field.name} value={field.name}>{field.name}</SelectItem>
                               ))}
+                              <SelectItem value="Other">Other...</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -156,38 +192,56 @@ export default function TitleForgeClient() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="topic"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Topic</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedField}>
+                    {selectedField === 'Other' && (
+                      <FormField
+                        control={form.control}
+                        name="customFieldOfStudy"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Custom Field of Study</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a topic..." />
-                              </SelectTrigger>
+                              <Input placeholder="e.g., Quantum Biology" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              {availableTopics.map(topic => (
-                                <SelectItem key={topic} value={topic}>{topic}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
-                    {selectedTopic === 'Other' && (
+                    {selectedField && selectedField !== 'Other' && (
+                      <FormField
+                        control={form.control}
+                        name="topic"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Topic</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ''} disabled={!selectedField}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a topic..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {availableTopics.map(topic => (
+                                  <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {(selectedTopic === 'Other' || selectedField === 'Other') && (
                       <FormField
                         control={form.control}
                         name="customTopic"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Custom Topic</FormLabel>
+                            <FormLabel>{selectedField === 'Other' ? 'Topic' : 'Custom Topic'}</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Quantum Computing in Finance" {...field} />
+                              <Input placeholder="e.g., AI in Drug Discovery" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -487,3 +541,5 @@ function Placeholder() {
     </div>
   );
 }
+
+    

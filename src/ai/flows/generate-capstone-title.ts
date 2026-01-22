@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -30,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'generateCapstoneTitlePrompt',
   input: {schema: GenerateCapstoneTitleInputSchema},
   output: {schema: GenerateCapstoneTitleOutputSchema},
-  prompt: `You are an expert in generating capstone project titles and providing detailed information about the project.
+  prompt: `You are an expert in generating capstone project titles and providing detailed information about the project. Your goal is to provide unique, modern, and high-quality project ideas.
 
   Based on the following information, generate a relevant and engaging capstone project title and provide detailed information:
 
@@ -39,15 +40,16 @@ const prompt = ai.definePrompt({
   Difficulty Level: {{{difficultyLevel}}}
 
   Instructions:
-  1. Generate a title that is specific, clear, and relevant to the field, topic, and difficulty.
-  2. For 'suggestedTechStacks', provide a bulleted list (e.g., "- React\\n- Node.js").
-  3. For 'objective', provide a concise paragraph.
-  4. For 'description', provide a detailed paragraph.
-  5. For 'implementationSteps', provide a numbered or bulleted list of steps.
-  6. For 'expectedMethodology', provide a bulleted list.
-  7. For 'dataCollection', describe how to collect data for the project. This can be a paragraph or a list.
-  8. For 'estimatedTime', provide a time range (e.g., "3-4 months").
-  9. For 'additionalInformation', include any other important details. Use a bulleted list if there are multiple points.
+  1. Generate a **unique and creative** title that is specific, clear, and relevant. Avoid generic or overused titles.
+  2. The project idea and suggested technologies should be **modern and reflect current industry trends** (from the last 1-2 years).
+  3. For 'suggestedTechStacks', provide a bulleted list (e.g., "- React\\n- Node.js").
+  4. For 'objective', provide a concise paragraph.
+  5. For 'description', provide a detailed paragraph.
+  6. For 'implementationSteps', provide a numbered or bulleted list of steps.
+  7. For 'expectedMethodology', provide a bulleted list.
+  8. For 'dataCollection', describe how to collect data for the project. This can be a paragraph or a list.
+  9. For 'estimatedTime', provide a time range (e.g., "3-4 months").
+  10. For 'additionalInformation', include any other important details. Use a bulleted list if there are multiple points.
 
   Ensure the output is in JSON format, adhering to the output schema.
 `,
@@ -64,3 +66,5 @@ const generateCapstoneTitleFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    
