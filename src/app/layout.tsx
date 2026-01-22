@@ -4,10 +4,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'title gen ai | AI-Powered Capstone & Thesis Title Generator',
-    template: `%s | title gen ai`,
+    default: 'TitleGen Ai | AI-Powered Capstone & Thesis Title Generator',
+    template: `%s | TitleGen Ai`,
   },
-  description: 'Generate innovative and relevant capstone and thesis titles with title gen ai. Get suggestions for tech stacks, objectives, and implementation steps for your academic projects.',
+  description: 'Generate innovative and relevant capstone and thesis titles with TitleGen Ai. Get suggestions for tech stacks, objectives, and implementation steps for your academic projects.',
   keywords: ['capstone project', 'thesis title generator', 'AI project ideas', 'research topics', 'academic projects', 'project title generator', 'final year project', 'Mark John Valdez'],
   authors: [{ name: 'Mark John Valdez' }],
   creator: 'Mark John Valdez',
@@ -15,14 +15,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://title-gen-ai.vercel.app',
-    siteName: 'title gen ai',
-    title: 'title gen ai | AI-Powered Capstone & Thesis Title Generator',
-    description: 'Generate innovative and relevant capstone and thesis titles with title gen ai.',
+    siteName: 'TitleGen Ai',
+    title: 'TitleGen Ai | AI-Powered Capstone & Thesis Title Generator',
+    description: 'Generate innovative and relevant capstone and thesis titles with TitleGen Ai.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'title gen ai | AI-Powered Capstone & Thesis Title Generator',
-    description: 'Generate innovative and relevant capstone and thesis titles with title gen ai.',
+    title: 'TitleGen Ai | AI-Powered Capstone & Thesis Title Generator',
+    description: 'Generate innovative and relevant capstone and thesis titles with TitleGen Ai.',
   },
 };
 
