@@ -341,40 +341,59 @@ function ResultsDisplay({
   function handleExportClick() {
     const { title, suggestedTechStacks, objective, description, implementationSteps, expectedMethodology, dataCollection, estimatedTime, additionalInformation } = result;
 
-    const markdownContent = `
-# ${title}
+    const formatContent = (content: string) => {
+        if (!content) return '';
+        return content.replace(/\n/g, '<br />');
+    };
 
-## Objective
-${objective}
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.4; }
+  h1 { color: #333; }
+  h2 { color: #555; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 24px; }
+</style>
+</head>
+<body>
+  <h1>${title}</h1>
 
-## Description
-${description}
+  <h2>Objective</h2>
+  <p>${objective}</p>
 
-## Suggested Tech Stacks
-${suggestedTechStacks}
+  <h2>Description</h2>
+  <p>${description}</p>
 
-## Implementation Steps
-${implementationSteps}
+  <h2>Suggested Tech Stacks</h2>
+  <p>${formatContent(suggestedTechStacks)}</p>
 
-## Expected Methodology
-${expectedMethodology}
+  <h2>Implementation Steps</h2>
+  <p>${formatContent(implementationSteps)}</p>
 
-## Data Collection
-${dataCollection}
+  <h2>Expected Methodology</h2>
+  <p>${formatContent(expectedMethodology)}</p>
 
-## Estimated Time
-${estimatedTime}
+  <h2>Data Collection</h2>
+  <p>${dataCollection}</p>
 
-## Additional Information
-${additionalInformation}
-    `.trim().replace(/^\s+/gm, '');
+  <h2>Estimated Time</h2>
+  <p>${estimatedTime}</p>
 
-    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+  <h2>Additional Information</h2>
+  <p>${formatContent(additionalInformation)}</p>
+</body>
+</html>
+    `.trim();
+
+    const blob = new Blob([htmlContent], { type: 'application/msword;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    link.download = `${safeTitle}.md`;
+    link.download = `${safeTitle}.doc`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -396,7 +415,7 @@ ${additionalInformation}
         </Button>
         <Button onClick={handleExportClick} variant="outline" className="w-full sm:w-auto">
           <Download className="mr-2 h-4 w-4" />
-          Export
+          Export as Doc
         </Button>
       </div>
       
