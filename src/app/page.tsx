@@ -11,7 +11,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-3xl sm:text-4xl font-headline font-bold text-foreground">
-              TitleForge AI
+              title gen ai
             </h1>
             <p className="text-muted-foreground">Mrk_vldz</p>
           </div>
