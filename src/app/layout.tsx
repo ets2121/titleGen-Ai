@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+const ogImage = PlaceHolderImages.find(img => img.id === 'og-image');
 
 export const metadata: Metadata = {
   title: {
@@ -14,15 +17,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://title-gen-ai.vercel.app',
+    url: 'https://titlegen.vercel.app',
     siteName: 'TitleGen Ai',
     title: 'TitleGen Ai | AI-Powered Capstone & Thesis Title Generator',
     description: 'Generate innovative and relevant capstone and thesis titles with TitleGen Ai.',
+    images: ogImage ? [
+      {
+        url: ogImage.imageUrl,
+        width: 1200,
+        height: 630,
+        alt: ogImage.description,
+      }
+    ] : [],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'TitleGen Ai | AI-Powered Capstone & Thesis Title Generator',
     description: 'Generate innovative and relevant capstone and thesis titles with TitleGen Ai.',
+    images: ogImage ? [ogImage.imageUrl] : [],
   },
 };
 
