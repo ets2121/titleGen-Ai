@@ -16,6 +16,7 @@ import { GenerateCapstoneTitleOutputSchema } from '@/ai/schemas';
 const GenerateCapstoneTitleInputSchema = z.object({
   fieldOfStudy: z.string().describe('The field of study (e.g., Computer Science, Electrical Engineering).'),
   topic: z.string().describe('The specific topic within the field of study (e.g., Data Mining, Embedded Systems).'),
+  areaOfInterest: z.string().describe('A general area of interest to help focus the project (e.g., Health, Finance, Art).'),
   difficultyLevel: z.enum(['Beginner', 'Intermediate', 'Advanced']).describe('The difficulty level of the project.'),
 });
 
@@ -37,6 +38,7 @@ const prompt = ai.definePrompt({
 
   Field of Study: {{{fieldOfStudy}}}
   Topic: {{{topic}}}
+  Area of Interest: {{{areaOfInterest}}}
   Difficulty Level: {{{difficultyLevel}}}
 
   Instructions:

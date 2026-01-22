@@ -7,10 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { fieldsOfStudy, difficultyLevels, type DifficultyLevel } from "@/lib/constants";
-import { generateTitleAction, refineDetailsAction } from "@/app/actions";
+import { fieldsOfStudy, difficultyLevels, type DifficultyLevel, areasOfInterest } from "@/lib/constants";
+import { generateTitleAction } from "@/app/actions";
 import type { GenerateCapstoneTitleOutput } from "@/ai/flows/generate-capstone-title";
-import type { RefineProjectDetailsInput } from "@/ai/flows/refine-project-details";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -19,14 +18,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight, Sparkles, Download, RefreshCw } from "lucide-react";
+import { Lightbulb, Cpu, Target, FileText, ListChecks, FunctionSquare, Clock, Info, Bot, Database, ArrowRight, Sparkles, Download } from "lucide-react";
 
 const formSchema = z.object({
   fieldOfStudy: z.string().min(1, 'Please select a field of study.'),
   customFieldOfStudy: z.string().optional(),
-  topic: z.string().optional(), // Can be empty if custom field of study
+  topic: z.string().optional(),
   customTopic: z.string().optional(),
+  areaOfInterest: z.string().min(1, 'Please select an area of interest.'),
+  customAreaOfInterest: z.string().optional(),
   difficultyLevel: z.enum(['Beginner', 'Intermediate', 'Advanced'], {
     required_error: 'Please select a difficulty level.',
   }),
@@ -62,6 +62,14 @@ const formSchema = z.object({
       });
     }
   }
+
+  if (data.areaOfInterest === 'Other' && !data.customAreaOfInterest?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Please enter a custom area of interest.',
+      path: ['customAreaOfInterest'],
+    });
+  }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,12 +86,15 @@ export default function TitleForgeClient() {
       customFieldOfStudy: '',
       topic: '',
       customTopic: '',
+      areaOfInterest: '',
+      customAreaOfInterest: '',
       difficultyLevel: 'Intermediate',
     },
   });
 
   const selectedField = form.watch('fieldOfStudy');
   const selectedTopic = form.watch('topic');
+  const selectedAreaOfInterest = form.watch('areaOfInterest');
 
   const availableTopics = useMemo(() => {
     if (selectedField === 'Other') return [];
@@ -102,10 +113,12 @@ export default function TitleForgeClient() {
 
     const isCustomField = values.fieldOfStudy === 'Other';
     const isCustomTopic = values.topic === 'Other';
+    const isCustomArea = values.areaOfInterest === 'Other';
 
     const input = {
       fieldOfStudy: isCustomField ? values.customFieldOfStudy! : values.fieldOfStudy,
       topic: isCustomField || isCustomTopic ? values.customTopic! : values.topic!,
+      areaOfInterest: isCustomArea ? values.customAreaOfInterest! : values.areaOfInterest,
       difficultyLevel: values.difficultyLevel as DifficultyLevel,
     };
 
@@ -129,10 +142,12 @@ export default function TitleForgeClient() {
     
     const isCustomField = values.fieldOfStudy === 'Other';
     const isCustomTopic = values.topic === 'Other';
+    const isCustomArea = values.areaOfInterest === 'Other';
 
     const input = {
       fieldOfStudy: isCustomField ? values.customFieldOfStudy! : values.fieldOfStudy,
       topic: isCustomField || isCustomTopic ? values.customTopic! : values.topic!,
+      areaOfInterest: isCustomArea ? values.customAreaOfInterest! : values.areaOfInterest,
       difficultyLevel: values.difficultyLevel as DifficultyLevel,
     };
 
@@ -251,6 +266,46 @@ export default function TitleForgeClient() {
 
                     <FormField
                       control={form.control}
+                      name="areaOfInterest"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Area of Interest</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an area of interest..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {areasOfInterest.map(area => (
+                                <SelectItem key={area} value={area}>{area}</SelectItem>
+                              ))}
+                              <SelectItem value="Other">Other...</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {selectedAreaOfInterest === 'Other' && (
+                        <FormField
+                        control={form.control}
+                        name="customAreaOfInterest"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Custom Area of Interest</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Sustainable Energy" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    )}
+
+                    <FormField
+                      control={form.control}
                       name="difficultyLevel"
                       render={({ field }) => (
                         <FormItem>
@@ -297,7 +352,6 @@ export default function TitleForgeClient() {
                 onGenerateNext={handleGenerateNext}
                 isGeneratingNext={isLoading}
                 onNewSearch={() => setResult(null)}
-                onRefine={setResult}
               />
             </motion.div>
           ) : (
@@ -336,13 +390,11 @@ function ResultsDisplay({
   onGenerateNext,
   isGeneratingNext,
   onNewSearch,
-  onRefine
 }: {
   result: GenerateCapstoneTitleOutput;
   onGenerateNext: () => void;
   isGeneratingNext: boolean;
   onNewSearch: () => void;
-  onRefine: (refinedResult: GenerateCapstoneTitleOutput) => void;
 }) {
   const details = [
     { icon: Cpu, title: 'Suggested Tech Stacks', content: result.suggestedTechStacks },
@@ -355,49 +407,13 @@ function ResultsDisplay({
     { icon: Info, title: 'Additional Information', content: result.additionalInformation },
   ];
   
-  const [refinementRequest, setRefinementRequest] = useState('');
-  const [isRefining, setIsRefining] = useState(false);
-  const { toast } = useToast();
-
-  async function handleRefineClick() {
-    if (!refinementRequest.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Refinement request is empty',
-        description: 'Please tell the AI how you want to refine the details.',
-      });
-      return;
-    }
-    setIsRefining(true);
-    try {
-      const input: RefineProjectDetailsInput = {
-        currentDetails: result,
-        refinementRequest,
-      };
-      const refinedResult = await refineDetailsAction(input);
-      onRefine(refinedResult);
-      setRefinementRequest('');
-      toast({
-        title: 'Refinement Complete',
-        description: 'The project details have been updated.',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'An Error Occurred',
-        description: error instanceof Error ? error.message : "Something went wrong.",
-      });
-    } finally {
-      setIsRefining(false);
-    }
-  }
 
   function handleExportClick() {
     const { title, suggestedTechStacks, objective, description, implementationSteps, expectedMethodology, dataCollection, estimatedTime, additionalInformation } = result;
 
     const formatContent = (content: string) => {
         if (!content) return '';
-        return content.replace(/\n/g, '<br />');
+        return content.replace(/\\n/g, '<br />');
     };
 
     const htmlContent = `
@@ -454,7 +470,7 @@ function ResultsDisplay({
     URL.revokeObjectURL(url);
   }
 
-  const showSkeleton = isGeneratingNext || isRefining;
+  const showSkeleton = isGeneratingNext;
 
   return (
     <Card className="bg-card/50 border-border/50 max-h-[calc(100vh-10rem)] overflow-y-auto">
@@ -463,7 +479,7 @@ function ResultsDisplay({
             <Sparkles className="mr-2 h-4 w-4" />
             New Search
         </Button>
-        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext || isRefining}>
+        <Button onClick={onGenerateNext} className="w-full" disabled={isGeneratingNext}>
           {isGeneratingNext ? "Generating..." : "Generate Another"}
           {!isGeneratingNext && <ArrowRight className="ml-2 h-4 w-4" />}
         </Button>
@@ -504,28 +520,6 @@ function ResultsDisplay({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <CardFooter className="flex-col items-start gap-4 p-6 bg-background/30 border-t border-border/50">
-        <h3 className="font-headline text-lg font-semibold flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary"/>
-          Refine with AI
-        </h3>
-        <p className="text-sm text-muted-foreground -mt-2">
-          Not quite right? Tell the AI what you want to change. (e.g., "Suggest Python libraries", "Make the description shorter")
-        </p>
-        <div className="w-full grid gap-2">
-          <Textarea 
-            placeholder="Your refinement request..."
-            value={refinementRequest}
-            onChange={(e) => setRefinementRequest(e.target.value)}
-            disabled={isRefining || isGeneratingNext}
-          />
-          <Button onClick={handleRefineClick} className="w-full sm:w-auto justify-self-start" disabled={isRefining || isGeneratingNext || !refinementRequest.trim()}>
-            {isRefining ? "Refining..." : "Refine"}
-            {!isRefining && <RefreshCw className="ml-2 h-4 w-4" />}
-          </Button>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

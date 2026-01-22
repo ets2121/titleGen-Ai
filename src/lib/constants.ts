@@ -17,6 +17,8 @@ export const fieldsOfStudy = [
   },
 ];
 
+export const areasOfInterest = ["Food", "Health", "Education", "Finance", "Entertainment", "E-commerce", "Social Media", "Gaming", "Travel", "Productivity"];
+
 export type DifficultyLevel = "Beginner" | "Intermediate" | "Advanced";
 
 export const difficultyLevels: DifficultyLevel[] = ["Beginner", "Intermediate", "Advanced"];
