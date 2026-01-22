@@ -1,4 +1,4 @@
-import { Facebook, Sparkles } from 'lucide-react';
+import { Facebook, Sparkles, MessageCircle } from 'lucide-react';
 import TitleForgeClient from '@/components/title-forge-client';
 
 export default function Home() {
@@ -29,8 +29,11 @@ export default function Home() {
             By Mark John Valdez | Powered by Google AI.
           </p>
           <div className="flex items-center gap-4">
-            <a href="#!" aria-label="Facebook" className="text-muted-foreground hover:text-primary transition-colors">
+            <a href="https://www.facebook.com/share/1JQ2fBEJma/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-muted-foreground hover:text-primary transition-colors">
               <Facebook className="h-5 w-5" />
+            </a>
+            <a href="https://m.me/4d61726b6a6f686eVALDEZ" target="_blank" rel="noopener noreferrer" aria-label="Messenger" className="text-muted-foreground hover:text-primary transition-colors">
+              <MessageCircle className="h-5 w-5" />
             </a>
           </div>
         </div>
