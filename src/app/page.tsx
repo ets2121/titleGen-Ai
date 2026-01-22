@@ -13,7 +13,7 @@ export default function Home() {
             <h1 className="text-3xl sm:text-4xl font-headline font-bold text-foreground">
               TitleForge AI
             </h1>
-            <p className="text-muted-foreground">Mrk_vldz</p>
+            <p className="text-muted-foreground">By Mark John Valdez</p>
           </div>
         </div>
         <p className="mt-2 text-muted-foreground max-w-2xl">

@@ -3,8 +3,27 @@ import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'TitleForge AI',
-  description: 'AI-powered capstone and thesis title generator',
+  title: {
+    default: 'TitleForge AI | AI-Powered Capstone & Thesis Title Generator',
+    template: `%s | TitleForge AI`,
+  },
+  description: 'Generate innovative and relevant capstone and thesis titles with TitleForge AI. Get suggestions for tech stacks, objectives, and implementation steps for your academic projects.',
+  keywords: ['capstone project', 'thesis title generator', 'AI project ideas', 'research topics', 'academic projects', 'project title generator', 'final year project', 'Mark John Valdez'],
+  authors: [{ name: 'Mark John Valdez' }],
+  creator: 'Mark John Valdez',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://titleforge.ai',
+    siteName: 'TitleForge AI',
+    title: 'TitleForge AI | AI-Powered Capstone & Thesis Title Generator',
+    description: 'Generate innovative and relevant capstone and thesis titles with TitleForge AI.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TitleForge AI | AI-Powered Capstone & Thesis Title Generator',
+    description: 'Generate innovative and relevant capstone and thesis titles with TitleForge AI.',
+  },
 };
 
 export default function RootLayout({
