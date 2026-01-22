@@ -21,14 +21,14 @@ export type GenerateCapstoneTitleInput = z.infer<typeof GenerateCapstoneTitleInp
 
 const GenerateCapstoneTitleOutputSchema = z.object({
   title: z.string().describe('The generated capstone project title.'),
-  suggestedTechStacks: z.string().describe('Suggested tech stacks that can be used for the project.'),
+  suggestedTechStacks: z.string().describe('Suggested tech stacks for the project, formatted as a bulleted list.'),
   objective: z.string().describe('The main objective of the project.'),
   description: z.string().describe('A clear and detailed description of the project.'),
-  implementationSteps: z.string().describe('Steps on how to implement the project.'),
-  expectedMethodology: z.string().describe('Expected methodologies that can be used.'),
+  implementationSteps: z.string().describe('Steps on how to implement the project, formatted as a numbered or bulleted list.'),
+  expectedMethodology: z.string().describe('Expected methodologies that can be used, formatted as a bulleted list.'),
   dataCollection: z.string().describe('How to collect data for the project.'),
   estimatedTime: z.string().describe('Estimated time to finish the project (days or months).'),
-  additionalInformation: z.string().describe('Other important information about the project.'),
+  additionalInformation: z.string().describe('Other important information about the project, can be a bulleted list if there are multiple points.'),
 });
 
 export type GenerateCapstoneTitleOutput = z.infer<typeof GenerateCapstoneTitleOutputSchema>;
@@ -51,27 +51,16 @@ const prompt = ai.definePrompt({
 
   Instructions:
   1. Generate a title that is specific, clear, and relevant to the field, topic, and difficulty.
-  2. Suggest appropriate tech stacks that can be used for the project.
-  3. Describe the main objective of the project.
-  4. Provide a clear and detailed description of the project.
-  5. Outline the steps on how to implement the project.
-  6. Suggest expected methodologies that can be used.
-  7. Describe how to collect data for the project.
-  8. Estimate the time to finish the project (days or months).
-  9. Include any additional important information about the project.
+  2. For 'suggestedTechStacks', provide a bulleted list (e.g., "- React\\n- Node.js").
+  3. For 'objective', provide a concise paragraph.
+  4. For 'description', provide a detailed paragraph.
+  5. For 'implementationSteps', provide a numbered or bulleted list of steps.
+  6. For 'expectedMethodology', provide a bulleted list.
+  7. For 'dataCollection', describe how to collect data for the project. This can be a paragraph or a list.
+  8. For 'estimatedTime', provide a time range (e.g., "3-4 months").
+  9. For 'additionalInformation', include any other important details. Use a bulleted list if there are multiple points.
 
-  Output the result in JSON format.
-  {
-    "title": "Generated Capstone Project Title",
-    "suggestedTechStacks": "Suggested tech stacks",
-    "objective": "The main objective of the project",
-    "description": "Detailed description of the project",
-    "implementationSteps": "Steps on how to implement the project",
-    "expectedMethodology": "Expected methodologies that can be used",
-    "dataCollection": "How to collect data for the project",
-    "estimatedTime": "Estimated time to finish the project",
-    "additionalInformation": "Any additional important information"
-  }
+  Ensure the output is in JSON format, adhering to the output schema.
 `,
 });
 
