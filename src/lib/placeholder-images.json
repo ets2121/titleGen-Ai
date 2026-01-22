@@ -3,13 +3,13 @@
     {
       "id": "logo",
       "description": "TitleGen Ai Logo",
-      "imageUrl": "/titlegen.png",
+      "imageUrl": "/assets/titlegen.png",
       "imageHint": "robot brain"
     },
     {
       "id": "og-image",
       "description": "TitleGen Ai Open Graph Image",
-      "imageUrl": "/titlegen.png",
+      "imageUrl": "/assets/titlegen.png",
       "imageHint": "technology abstract"
     }
   ]
